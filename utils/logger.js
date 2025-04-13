@@ -39,7 +39,12 @@ const files = [
     {
         path: path.join(dataDir, 'stats.json'),
         default: '{}'
+    },
+    {
+	path: path.join(dataDir, 'usageToday.json'),
+	default: '{}'
     }
+
 ]
 
 for(const file of files){
