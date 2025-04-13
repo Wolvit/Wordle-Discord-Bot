@@ -1,10 +1,13 @@
+const fs = require('fs');
+const path = require('path');
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
-const { todayWord } = require("../src/dailyGame");
+const { todayWord, yesterdayKey } = require("../src/dailyGame");
 const { guessCheck } = require("../src/guess");
 const { getUserRandomWord, resetUserWord } = require("../src/randomWords");
 const { logMessage } = require("../utils/logger");
 const { markGuessedToday, hasGuessedToday } = require("../src/guessedToday");
 const { incrementStats } = require("../src/stats");
+const { hasUsedToday, markUsedToday } = require('../src/usageToday.js');
 
 
 module.exports = {
@@ -33,6 +36,7 @@ module.exports = {
                         flags: 64
                     })
                 }   else{
+
                     const guess = interaction.options.getString('slovo').toLowerCase();
                     const mode = interaction.options.getString('mode') || 'today';
                     let actualMode = mode;
@@ -51,9 +55,16 @@ module.exports = {
                     } else{
                         secret = todayWord();
                     }
-
+			const dailyPath = path.join(__dirname, '../data/daily.json');
+			let data = {}
+			if(fs.existsSync(dailyPath)) {
+				const fileContent = fs.readFileSync(dailyPath, 'utf-8');
+				data = JSON.parse(fileContent);
+			}
                     const result = guessCheck(guess, secret);
                     const isCorrect = guess === secret;
+			const newKey = yesterdayKey();
+			const word = data[newKey].toUpperCase() || null;
 
                     const embed = new EmbedBuilder()
                         .setTitle(isCorrect ? 'Správná odpověď!' : 'Výsledek tvého pokusu')
@@ -61,6 +72,15 @@ module.exports = {
                         .setColor(isCorrect ? 0x22C55E : 0x1EA8A)
                         .setFooter({text: actualMode === 'today' ? 'Dnešní slovo' : 'Náhodné slovo '});
 
+			const isFirstTimeToday = !hasUsedToday(interaction.user.id);
+			markUsedToday(interaction.user.id);
+			if(word && actualMode === 'today' && isFirstTimeToday){
+				embed.addFields({
+					name: 'Včerejší slovo',
+					value: word,
+					inline: false
+					});
+			}
                     await interaction.reply({
                         embeds: [embed],
                         flags: 64

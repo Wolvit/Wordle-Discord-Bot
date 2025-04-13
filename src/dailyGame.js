@@ -9,6 +9,12 @@ function todayKey(){
     return `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;
 }
 
+function yesterdayKey(){
+     const day = new Date();
+     day.setDate(day.getDate() - 1 );
+     return `${day.getFullYear()}-${day.getMonth()+1}-${day.getDate()}`;
+}
+
 function todayWord(){
     const key = todayKey();
 
@@ -32,4 +38,4 @@ function todayWord(){
 }
 
 
-module.exports = { todayWord, todayKey };
+module.exports = { todayWord, todayKey, yesterdayKey };
